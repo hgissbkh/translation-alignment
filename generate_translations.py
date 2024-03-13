@@ -20,10 +20,7 @@ def main():
 
     # Set up GPU
     if args.gpu != 'N/A':
-        #os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
-        pass
-    
-    os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+        os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
     # Load model
     print('Loading model...')
