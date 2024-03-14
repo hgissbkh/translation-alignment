@@ -3,7 +3,6 @@ import os
 from tqdm import tqdm
 import numpy as np
 from vllm import LLM, SamplingParams
-from datasets import load_dataset
 
 
 def main():
