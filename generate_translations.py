@@ -10,7 +10,7 @@ def main():
     
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--source-file', type=str, default='data/mt_align_study_w_idiom_1203_mt_align_study_w_idiom_1203_20_sources.txt')
+    parser.add_argument('-d', '--source-file', type=str, default='data/mt_align_study_w_idiom_1203_mt_align_study_w_idiom_1203_20_sources_rep.txt')
     parser.add_argument('-m', '--model-path', type=str, default='Unbabel/TowerInstruct-7B-v0.2')
     parser.add_argument('-t', '--temperature', type=float, default=0.9)
     parser.add_argument('-p', '--top-p', type=float, default=0.6)
@@ -23,15 +23,15 @@ def main():
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
     # Load model
-    print('Loading model...')
-    llm = LLM(model=args.model_path, tensor_parallel_size=1)
-    print('Done.\n')
+    print('==========> Loading model...')
+    llm = LLM(model=args.model_path, max_model_len=1024, tensor_parallel_size=1)
+    print('==========> Done.\n')
 
     # Load source data
-    print('Loading source data...')
+    print('==========> Loading source data...')
     with open(args.source_file, 'r') as f:
-        prompts = [line.strip().replace('\\n', '\n') for line in tqdm(f)]
-    print('Done.\n')
+        prompts = [line.strip().replace('\\n', '\n') for line in f]
+    print('==========> Done.\n')
 
     # Set up sampling parameters
     sampling_params = SamplingParams(
@@ -41,16 +41,20 @@ def main():
     )
     
     # Generate candidates
-    print('Generating candidates...')
+    print('==========> Generating candidates...')
     outputs = llm.generate(prompts, sampling_params)
-    generations_txt = '\n'.join([o.outputs[0].text.strip() for o in outputs])
-    print('Done.\n')
+    generations = [o.outputs[0].text.strip() for o in outputs]
+    generations_txt = '\n'.join(generations)
+    print('==========> Done.\n')
 
     # Save candidates file
-    print('Saving candidates file...')
-    with open(args.source_file.replace('sources', 'candidates'), 'w') as f:
+    print('==========> Saving candidates file...')
+    with open(
+        args.source_file.replace('sources', '') + str(args.temperature) 
+        + '_' + str(args.top_p) + '_candidates', 'w'
+    ) as f:
         f.write(generations_txt)
-    print('Done.')
+    print('==========> Done.')
 
 if __name__ == '__main__':
     main()

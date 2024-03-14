@@ -2,13 +2,12 @@ import argparse
 import os
 from tqdm import tqdm
 import numpy as np
-from vllm import LLM
 from datasets import load_dataset
 
 
 def get_instruction(
         src, src_lang, tgt_lang, 
-        template='<|im_start|>user\\nTranslate the following [SRC_LANG] source text to [TGT_LANG]:\\n[SRC_LANG]: [SRC_SENTENCE]\\n[TGT_LANG]: <|im_end|>\n'
+        template='<|im_start|>user\\nTranslate the following [SRC_LANG] source text to [TGT_LANG]:\\n[SRC_LANG]: [SRC_SENTENCE]\\n[TGT_LANG]: <|im_end|>\\n<|im_start|>assistant\\n\n'
 ):
     lang_dict = {
         'de': 'German',
@@ -38,29 +37,44 @@ def main():
     args = parser.parse_args()
 
     # Load data
-    print('Loading dataset...')
+    print('==========> Loading dataset...')
     dataset = load_dataset(args.dataset_path)
     sources = dataset[args.split]['src']
     src_langs = dataset[args.split]['src_lang']
     tgt_langs = dataset[args.split]['tgt_lang']
-    print('Done.\n')
+    print('==========> Done.\n')
 
     # Generate source file
-    print('Generating source file...')
-    repeated_instructions_txt = ''
+    print('==========> Generating source file...')
+    instructions_no_rep_txt = ''
+    instructions_rep_txt = ''
+    
     for src, src_lang, tgt_lang in tqdm(list(zip(sources, src_langs, tgt_langs))):
-        repeated_instructions_txt += get_instruction(src, src_lang, tgt_lang) * args.num_candidates
-    print('Done.\n')
+        instructions_no_rep_txt += src + '\n'
+        instructions_rep_txt += get_instruction(src, src_lang, tgt_lang) * args.num_candidates
+    
+    print('==========> Done.\n')
 
-    # Save source file
-    print('Saving source file...')
+    # Save source files
+    print('==========> Saving source files...')
+    if not os.path.exists('data/'):
+        os.makedirs('data/')    
+    
     with open(
         'data/' + args.dataset_path.split('/')[1].replace('-', '_') 
         + '_' + args.dataset_path.split('/')[1].replace('-', '_') 
-        + '_' + str(args.num_candidates) + '_sources.txt', 'w'
+        + '_sources.txt', 'w'
     ) as f:
-        f.write(repeated_instructions_txt)
-    print('Done.')
+        f.write(instructions_no_rep_txt)     
+    
+    with open(
+        'data/' + args.dataset_path.split('/')[1].replace('-', '_') 
+        + '_' + args.dataset_path.split('/')[1].replace('-', '_') 
+        + '_' + str(args.num_candidates) + '_sources_rep.txt', 'w'
+    ) as f:
+        f.write(instructions_rep_txt)
+    
+    print('==========> Done.')
 
 
 if __name__ == '__main__':
