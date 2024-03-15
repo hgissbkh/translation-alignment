@@ -11,6 +11,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--source-file', type=str, default='data/mt_align_study_w_idiom_1203_mt_align_study_w_idiom_1203_20_sources_rep.txt')
     parser.add_argument('-m', '--model-path', type=str, default='Unbabel/TowerInstruct-7B-v0.2')
+    parser.add_argument('-ml', '--model-path-local', type=str, default='/linkhome/rech/genrce01/urb81vh/.cache/huggingface/hub/[MODEL]/snapshots/6ea1d9e6cb5e8badde77ef33d61346a31e6ff1d4')
     parser.add_argument('-t', '--temperature', type=float, default=0.9)
     parser.add_argument('-p', '--top-p', type=float, default=0.6)
     parser.add_argument('-mt', '--max-tokens', type=float, default=1024)
@@ -23,7 +24,8 @@ def main():
 
     # Load model
     print('==========> Loading model...')
-    llm = LLM(model=args.model_path, max_model_len=1024, tensor_parallel_size=1)
+    model_path_local = args.model_path_local.replace('[MODEL]', 'models--' + args.model_path.replace('/', '--'))
+    llm = LLM(model=model_path_local, max_model_len=1024, tensor_parallel_size=1)        
     print('==========> Done.\n')
 
     # Load source data
