@@ -6,7 +6,7 @@ from datasets import load_dataset
 
 def get_instruction(
         src, src_lang, tgt_lang, 
-        template='<|im_start|>user\\nTranslate the following [SRC_LANG] source text to [TGT_LANG]:\\n[SRC_LANG]: [SRC_SENTENCE]\\n[TGT_LANG]: <|im_end|>\\n<|im_start|>assistant\\n\n'
+        template='<|im_start|>user\\nTranslate the following [SRC_LANG] source text to [TGT_LANG]:\\n[SRC_LANG]: [SRC_SENTENCE]\\n[TGT_LANG]: <|im_end|>\\n<|im_start|>assistant\\n'
 ):
     lang_dict = {
         'de': 'German',
@@ -45,12 +45,13 @@ def main():
 
     # Generate source file
     print('==========> Generating source file...')
-    instructions_txt = ''
-    instructions_rep_txt = ''
+    instructions_rep = []
     
     for src, src_lang, tgt_lang in tqdm(list(zip(sources, src_langs, tgt_langs))):
-        instructions_txt += src + '\n'
-        instructions_rep_txt += get_instruction(src, src_lang, tgt_lang) * args.num_candidates
+        instructions_rep += [get_instruction(src, src_lang, tgt_lang)] * args.num_candidates
+
+    instructions_rep_txt = '\n'.join(instructions_rep)
+    sources_txt = '\n'.join(sources)
     
     print('==========> Done.\n')
 
@@ -60,7 +61,7 @@ def main():
         os.makedirs('data/')    
     
     with open('data/sources.txt', 'w') as f:
-        f.write(instructions_txt)     
+        f.write(sources_txt)     
     
     with open(
         f'data/repeated_sources_N{args.num_candidates}.txt', 'w') as f:
