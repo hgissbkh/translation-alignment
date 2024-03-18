@@ -1,7 +1,6 @@
 import argparse
 import os
 from tqdm import tqdm
-import numpy as np
 from datasets import load_dataset
 
 
@@ -46,11 +45,11 @@ def main():
 
     # Generate source file
     print('==========> Generating source file...')
-    instructions_no_rep_txt = ''
+    instructions_txt = ''
     instructions_rep_txt = ''
     
     for src, src_lang, tgt_lang in tqdm(list(zip(sources, src_langs, tgt_langs))):
-        instructions_no_rep_txt += src + '\n'
+        instructions_txt += src + '\n'
         instructions_rep_txt += get_instruction(src, src_lang, tgt_lang) * args.num_candidates
     
     print('==========> Done.\n')
@@ -60,18 +59,11 @@ def main():
     if not os.path.exists('data/'):
         os.makedirs('data/')    
     
-    with open(
-        'data/' + args.dataset_path.split('/')[1].replace('-', '_') 
-        + '_' + args.dataset_path.split('/')[1].replace('-', '_') 
-        + '_sources.txt', 'w'
-    ) as f:
-        f.write(instructions_no_rep_txt)     
+    with open('data/sources.txt', 'w') as f:
+        f.write(instructions_txt)     
     
     with open(
-        'data/' + args.dataset_path.split('/')[1].replace('-', '_') 
-        + '_' + args.dataset_path.split('/')[1].replace('-', '_') 
-        + '_' + str(args.num_candidates) + '_sources_rep.txt', 'w'
-    ) as f:
+        f'data/repeated_sources_N{args.num_candidates}.txt', 'w') as f:
         f.write(instructions_rep_txt)
     
     print('==========> Done.')
