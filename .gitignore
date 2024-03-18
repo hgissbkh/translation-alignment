@@ -1,3 +1,4 @@
 sb_*
 data/
 slurm
+.DS_Store
