@@ -52,7 +52,6 @@ def main():
 
     instructions_rep_txt = '\n'.join(instructions_rep)
     sources_txt = '\n'.join(sources)
-    
     print('==========> Done.\n')
 
     # Save source files
