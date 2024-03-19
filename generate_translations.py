@@ -36,7 +36,7 @@ def main():
     # Generate candidates
     print('==========> Generating candidates...')
     outputs = llm.generate(prompts, sampling_params)
-    generations = [o.outputs[0].text.strip() for o in outputs]
+    generations = [o.outputs[0].text.strip().replace('\n', '\\n') for o in outputs]
     generations_txt = '\n'.join(generations)
     print('==========> Done.\n')
 
@@ -44,6 +44,7 @@ def main():
     print('==========> Saving candidates file...')
     with open(f'data/candidates_N{args.source_file.split("_")[-1][1:-4]}_t{args.temperature}_p{args.top_p}.txt', 'w') as f:
         f.write(generations_txt)
+
     print('==========> Done.')
 
 if __name__ == '__main__':
