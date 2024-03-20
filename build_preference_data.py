@@ -27,7 +27,10 @@ def main():
         scores = [[float(score) for score in scores.split('\t')] for scores in f.read().split('\n')]
 
     # Build preference data
-    pref_data_train = {'chosen': [], 'rejected': [], 'candidates': [], 'scores': [], 'src': [], 'src_lang': [], 'tgt_lang': []}
+    pref_data_train = {
+        'chosen': [], 'rejected': [], 'chosen_score': [], 'rejected_score': [], 
+        'candidates': [], 'scores': [], 'src': [], 'src_lang': [], 'tgt_lang': []
+    }
 
     for cd, sc, src, src_lang, tgt_lang in zip(candidates, scores, dataset_train['src'], dataset_train['src_lang'], dataset_train['tgt_lang']):    
         cd_filt = [s for s, x in zip(cd, sc) if x >= args.min_score] # Only candidates that have a sufficiently high score
@@ -36,6 +39,8 @@ def main():
         if len(cd_filt) > 0:    
             pref_data_train['chosen'].append(cd_filt[np.argmax(sc_filt)])
             pref_data_train['rejected'].append(cd_filt[np.argmin(sc_filt)])
+            pref_data_train['chosen_score'].append(max(sc_filt))
+            pref_data_train['rejected_score'].append(min(sc_filt))
             pref_data_train['candidates'].append(cd)
             pref_data_train['scores'].append(sc)
             pref_data_train['src'].append(src)
