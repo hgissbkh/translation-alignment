@@ -27,7 +27,6 @@ def get_instruction(
     
 
 def main():
-    
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--dataset-path', type=str, default='sardinelab/mt-align-study-w-idiom-1203')
