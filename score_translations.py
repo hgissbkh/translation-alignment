@@ -21,11 +21,11 @@ def main():
         
         # Using MBR
         if args.decoding_type == 'MBR':
-            # raise NotImplementedError
-            subprocess.run(
-                f'comet-mbr -s {args.source_file} -t {args.translation_file} --num_sample {num_candidates} -o {output_file}', 
-                shell=True, check=True, capture_output=True, text=True
-            )
+            command = f'comet-mbr -s {args.source_file} -t {args.translation_file} --num_sample {num_candidates} -o {output_file}'
+            process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            for line in process.stdout:
+                print(line.strip())
+            process.communicate()
         
         # Using N-best reranking
         elif args.decoding_type == 'NBest':
