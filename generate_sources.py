@@ -2,30 +2,8 @@ import argparse
 import os
 from tqdm import tqdm
 from datasets import load_dataset
+from utils import get_prompt
 
-
-def get_prompt(
-        src, src_lang, tgt_lang, 
-        template='<|im_start|>user\\nTranslate the following [SRC_LANG] source text to [TGT_LANG]:\\n' + \
-            '[SRC_LANG]: [SRC_SENTENCE]\\n[TGT_LANG]: <|im_end|>\\n<|im_start|>assistant\\n'
-):
-    lang_dict = {
-        'de': 'German',
-        'en': 'English',
-        'es': 'Spanish',
-        'fr': 'French',
-        'it': 'Italian',
-        'pt': 'Portuguese'
-    }
-    instruction = template.replace(
-        '[SRC_SENTENCE]', src
-    ).replace(
-        '[SRC_LANG]', lang_dict[src_lang]
-    ).replace(
-        '[TGT_LANG]', lang_dict[tgt_lang]
-    )
-    return instruction
-    
 
 def main():
     # Parse arguments
@@ -48,7 +26,7 @@ def main():
     instructions_rep = []
     
     for src, src_lang, tgt_lang in tqdm(list(zip(sources, src_langs, tgt_langs))):
-        instructions_rep += [get_prompt(src, src_lang, tgt_lang)] * args.num_candidates
+        instructions_rep += [get_prompt(src, src_lang, tgt_lang).replace('\n', '\\n')] * args.num_candidates
 
     instructions_rep_txt = '\n'.join(instructions_rep)
     sources_txt = '\n'.join(sources)
