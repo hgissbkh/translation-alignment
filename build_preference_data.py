@@ -2,6 +2,7 @@ import argparse
 import re
 import numpy as np
 from datasets import load_dataset, Dataset, DatasetDict
+from utils import get_prompt
 
 
 def main():
@@ -28,14 +29,9 @@ def main():
 
     # Build preference data
     pref_data_train = {
-        'input': [], 'chosen': [], 'rejected': [], 'score_chosen': [], 'score_rejected': [], 
+        'prompt': [], 'chosen': [], 'rejected': [], 'score_chosen': [], 'score_rejected': [], 
         'candidates': [], 'scores': [], 'src': [], 'src_lang': [], 'tgt_lang': []
     }
-    lang_dict = {
-        'de': 'German', 'en': 'English', 'es': 'Spanish', 
-        'fr': 'French', 'it': 'Italian', 'pt': 'Portuguese'
-    }
-    instruction = 'Translate the following [SRC_LANG] source text to [TGT_LANG]:\n[SRC_LANG]: [SRC_SENTENCE]\n[TGT_LANG]: '
 
     for cd, sc, src, src_lang, tgt_lang in zip(candidates, scores, dataset_train['src'], dataset_train['src_lang'], dataset_train['tgt_lang']):    
         cd_filt = [s for s, x in zip(cd, sc) if x >= args.min_score] # Only candidates that have a sufficiently high score
@@ -46,15 +42,7 @@ def main():
             rejected = cd[np.argmin(sc)]
             
             if chosen != rejected:
-                pref_data_train['input'].append(
-                    instruction.replace(
-                        '[SRC_LANG]', lang_dict[src_lang]
-                    ).replace(
-                        '[TGT_LANG]', lang_dict[tgt_lang]
-                    ).replace(
-                        '[SRC_SENTENCE]', src
-                    )
-                )
+                pref_data_train['prompt'].append(get_prompt(src, src_lang, tgt_lang))
                 pref_data_train['chosen'].append(chosen)
                 pref_data_train['rejected'].append(rejected)
                 pref_data_train['score_chosen'].append(max(sc_filt))
