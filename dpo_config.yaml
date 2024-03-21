@@ -31,16 +31,10 @@ lora_target_linear: true
 lora_fan_in_fan_out:
 lora_target_modules:
 
-wandb_project: axolotl
-wandb_entity:
-wandb_watch:
-wandb_name:
-wandb_log_model:
-
 gradient_accumulation_steps: 1
 micro_batch_size: 2
 num_epochs: 3
-optimizer: rmsprop
+optimizer: adamw_hf
 lr_scheduler: cosine
 learning_rate: 5e-8
 
