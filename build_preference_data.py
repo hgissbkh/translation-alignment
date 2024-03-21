@@ -28,24 +28,42 @@ def main():
 
     # Build preference data
     pref_data_train = {
-        'chosen': [], 'rejected': [], 'chosen_score': [], 'rejected_score': [], 
+        'input': [], 'chosen': [], 'rejected': [], 'score_chosen': [], 'score_rejected': [], 
         'candidates': [], 'scores': [], 'src': [], 'src_lang': [], 'tgt_lang': []
     }
+    lang_dict = {
+        'de': 'German', 'en': 'English', 'es': 'Spanish', 
+        'fr': 'French', 'it': 'Italian', 'pt': 'Portuguese'
+    }
+    instruction = 'Translate the following [SRC_LANG] source text to [TGT_LANG]:\n[SRC_LANG]: [SRC_SENTENCE]\n[TGT_LANG]: '
 
     for cd, sc, src, src_lang, tgt_lang in zip(candidates, scores, dataset_train['src'], dataset_train['src_lang'], dataset_train['tgt_lang']):    
         cd_filt = [s for s, x in zip(cd, sc) if x >= args.min_score] # Only candidates that have a sufficiently high score
         sc_filt = [x for x in sc if x >= args.min_score]
         
         if len(cd_filt) > 0:    
-            pref_data_train['chosen'].append(cd_filt[np.argmax(sc_filt)])
-            pref_data_train['rejected'].append(cd_filt[np.argmin(sc_filt)])
-            pref_data_train['chosen_score'].append(max(sc_filt))
-            pref_data_train['rejected_score'].append(min(sc_filt))
-            pref_data_train['candidates'].append(cd)
-            pref_data_train['scores'].append(sc)
-            pref_data_train['src'].append(src)
-            pref_data_train['src_lang'].append(src_lang)
-            pref_data_train['tgt_lang'].append(tgt_lang)
+            chosen = cd_filt[np.argmax(sc_filt)]
+            rejected = cd[np.argmin(sc)]
+            
+            if chosen != rejected:
+                pref_data_train['input'].append(
+                    instruction.replace(
+                        '[SRC_LANG]', lang_dict[src_lang]
+                    ).replace(
+                        '[TGT_LANG]', lang_dict[tgt_lang]
+                    ).replace(
+                        '[SRC_SENTENCE]', src
+                    )
+                )
+                pref_data_train['chosen'].append(chosen)
+                pref_data_train['rejected'].append(rejected)
+                pref_data_train['score_chosen'].append(max(sc_filt))
+                pref_data_train['score_rejected'].append(min(sc_filt))
+                pref_data_train['candidates'].append(cd)
+                pref_data_train['scores'].append(sc)
+                pref_data_train['src'].append(src)
+                pref_data_train['src_lang'].append(src_lang)
+                pref_data_train['tgt_lang'].append(tgt_lang)
     
     pref_data_train = Dataset.from_dict(pref_data_train)
     pref_data = DatasetDict({'train': pref_data_train})
