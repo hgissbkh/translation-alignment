@@ -1,7 +1,7 @@
 base_model: Unbabel/TowerInstruct-7B-v0.2
 model_type: AutoModelForCausalLM
 tokenizer_type: AutoTokenizer
-is_mistral_derived_model: false
+is_llama_derived_model: true
 
 load_in_8bit: false
 load_in_4bit: true
