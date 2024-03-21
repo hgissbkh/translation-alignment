@@ -4,9 +4,10 @@ from tqdm import tqdm
 from datasets import load_dataset
 
 
-def get_instruction(
+def get_prompt(
         src, src_lang, tgt_lang, 
-        template='<|im_start|>user\\nTranslate the following [SRC_LANG] source text to [TGT_LANG]:\\n[SRC_LANG]: [SRC_SENTENCE]\\n[TGT_LANG]: <|im_end|>\\n<|im_start|>assistant\\n'
+        template='<|im_start|>user\\nTranslate the following [SRC_LANG] source text to [TGT_LANG]:\\n' + \
+            '[SRC_LANG]: [SRC_SENTENCE]\\n[TGT_LANG]: <|im_end|>\\n<|im_start|>assistant\\n'
 ):
     lang_dict = {
         'de': 'German',
@@ -47,7 +48,7 @@ def main():
     instructions_rep = []
     
     for src, src_lang, tgt_lang in tqdm(list(zip(sources, src_langs, tgt_langs))):
-        instructions_rep += [get_instruction(src, src_lang, tgt_lang)] * args.num_candidates
+        instructions_rep += [get_prompt(src, src_lang, tgt_lang)] * args.num_candidates
 
     instructions_rep_txt = '\n'.join(instructions_rep)
     sources_txt = '\n'.join(sources)
