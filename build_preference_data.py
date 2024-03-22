@@ -29,8 +29,8 @@ def main():
 
     # Build preference data
     pref_data_train = {
-        'prompt': [], 'chosen': [], 'rejected': [], 'score_chosen': [], 'score_rejected': [], 
-        'candidates': [], 'scores': [], 'src': [], 'src_lang': [], 'tgt_lang': []
+        'prompt': [], 'chosen': [], 'rejected': [], 'chosen_sentence': [], 'rejected_sentence': [], 'score_chosen': [], 
+        'score_rejected': [], 'candidates': [], 'scores': [], 'src': [], 'src_lang': [], 'tgt_lang': []
     }
 
     for cd, sc, src, src_lang, tgt_lang in zip(candidates, scores, dataset_train['src'], dataset_train['src_lang'], dataset_train['tgt_lang']):    
@@ -43,8 +43,10 @@ def main():
             
             if chosen != rejected:
                 pref_data_train['prompt'].append(get_prompt(src, src_lang, tgt_lang))
-                pref_data_train['chosen'].append(chosen)
-                pref_data_train['rejected'].append(rejected)
+                pref_data_train['chosen'].append(chosen + '<|im_end|>')
+                pref_data_train['rejected'].append(rejected + '<|im_end|>')
+                pref_data_train['chosen_sentence'].append(chosen)
+                pref_data_train['rejected_sentence'].append(rejected)
                 pref_data_train['score_chosen'].append(max(sc_filt))
                 pref_data_train['score_rejected'].append(min(sc_filt))
                 pref_data_train['candidates'].append(cd)
