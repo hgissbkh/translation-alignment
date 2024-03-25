@@ -9,6 +9,7 @@ def main():
     parser.add_argument('-s', '--source-file', type=str, default='data/repeated_sources_N20.txt')
     parser.add_argument('-m', '--model-path', type=str, default='Unbabel/TowerInstruct-7B-v0.2')
     parser.add_argument('-ml', '--model-path-local', type=str, default='/linkhome/rech/genrce01/urb81vh/.cache/huggingface/hub/[MODEL]/snapshots/6ea1d9e6cb5e8badde77ef33d61346a31e6ff1d4')
+    parser.add_argument('-t', '--use_beam_search', action='store_true')
     parser.add_argument('-t', '--temperature', type=float, default=0.9)
     parser.add_argument('-p', '--top-p', type=float, default=0.6)
     parser.add_argument('-mt', '--max-tokens', type=float, default=1024)
@@ -28,6 +29,7 @@ def main():
 
     # Set up sampling parameters
     sampling_params = SamplingParams(
+        use_beam_search=args.use_beam_search,
         temperature=args.temperature,
         top_p=args.top_p,
         max_tokens=args.max_tokens
