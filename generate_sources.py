@@ -12,7 +12,7 @@ def main():
     parser.add_argument('-d', '--dataset-path', type=str, default='sardinelab/mt-align-study-w-idiom-1203')
     parser.add_argument('-s', '--split', type=str, default='train')
     parser.add_argument('-N', '--num-candidates', type=int, default=20)
-    parser.add_argument('-sd', '--save-directory', type=str, default='data/train/')
+    parser.add_argument('-sd', '--save-directory', type=str, default='data/train')
     args = parser.parse_args()
 
     # Load data
