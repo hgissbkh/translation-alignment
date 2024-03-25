@@ -1,6 +1,7 @@
 import argparse
 import os
 from tqdm import tqdm
+from itertools import repeat
 from datasets import load_dataset
 from utils import get_prompt
 
@@ -16,17 +17,24 @@ def main():
     # Load data
     print('==========> Loading dataset...')
     dataset = load_dataset(args.dataset_path)
-    sources = dataset[args.split]['src']
-    src_langs = dataset[args.split]['src_lang']
-    tgt_langs = dataset[args.split]['tgt_lang']
+    dataset = dataset[args.split]
     print('==========> Done.\n')
 
     # Generate source file
     print('==========> Generating source file...')
-    instructions_rep = []
     
-    for src, src_lang, tgt_lang in tqdm(list(zip(sources, src_langs, tgt_langs))):
-        instructions_rep += [get_prompt(src, src_lang, tgt_lang).replace('\n', '\\n')] * args.num_candidates
+    if 'prompt' in dataset:
+        instructions = dataset['prompt']
+        instructions_rep = [prompt for prompt in instructions for _ in repeat(None, args.num_candidates)]
+        sources = dataset['src']
+    else:    
+        sources = dataset['src']
+        src_langs = dataset['src_lang']
+        tgt_langs = dataset['tgt_lang']
+        instructions_rep = [] 
+        
+        for src, src_lang, tgt_lang in tqdm(list(zip(sources, src_langs, tgt_langs))):
+            instructions_rep += [get_prompt(src, src_lang, tgt_lang).replace('\n', '\\n')] * args.num_candidates
 
     instructions_rep_txt = '\n'.join(instructions_rep)
     sources_txt = '\n'.join(sources)
