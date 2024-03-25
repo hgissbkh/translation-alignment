@@ -24,7 +24,7 @@ def main():
     # Generate source file
     print('==========> Generating source file...')
     
-    if 'prompt' in dataset:
+    if 'prompt' in dataset.features:
         instructions = dataset['prompt']
         instructions_rep = [prompt for prompt in instructions for _ in repeat(None, args.num_candidates)]
         sources = dataset['src']
