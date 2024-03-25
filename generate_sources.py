@@ -12,6 +12,7 @@ def main():
     parser.add_argument('-d', '--dataset-path', type=str, default='sardinelab/mt-align-study-w-idiom-1203')
     parser.add_argument('-s', '--split', type=str, default='train')
     parser.add_argument('-N', '--num-candidates', type=int, default=20)
+    parser.add_argument('-sd', '--save-directory', type=str, default='data/train/')
     args = parser.parse_args()
 
     # Load data
@@ -42,14 +43,11 @@ def main():
 
     # Save source files
     print('==========> Saving source files...')
-    if not os.path.exists('data/'):
-        os.makedirs('data/')    
-    
-    with open('data/sources.txt', 'w') as f:
+    with open(f'{args.save_directory}/sources.txt', 'w') as f:
         f.write(sources_txt)     
     
     with open(
-        f'data/repeated_sources_N{args.num_candidates}.txt', 'w') as f:
+        f'{args.save_directory}/repeated_sources_N{args.num_candidates}.txt', 'w') as f:
         f.write(instructions_rep_txt)
     
     print('==========> Done.')
