@@ -1,5 +1,7 @@
 import argparse
+import os
 import pickle
+import torch
 from datasets import load_dataset
 from comet import download_model, load_from_checkpoint
 
@@ -7,80 +9,78 @@ from comet import download_model, load_from_checkpoint
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('-dn', '--dataset-name', type=str, default='mt-align-study-w-idiom-1203')
-    parser.add_argument('-dp', '--dataset-path', type=str, default='data/raw/{DATASET_NAME}')
-    parser.add_argument('-s', '--split', type=str, default='train')
-    parser.add_argument('-c', '--checkpoint', type=str, default='aligned')
-    parser.add_argument('-mn', '--model-name', type=str, default='TowerInstruct-7B-v0.2')
-    parser.add_argument('-hp', '--hyperparameters', type=str, default='e3_bs32_lr1e-06_wu0.0')
-    parser.add_argument('-tp', '--translations-path', type=str, default='data/evaluation/{DATASET_NAME}/{MODEL_NAME}/{HYPERPARAMETERS}/{CHECKPOINT}')
-    parser.add_argument('-tf', '--translations-file', type=str, default='hypotheses_greedy.txt')
-    parser.add_argument('-m', '--metric', type=str, default='COMET')
-    parser.add_argument('-scp', '--scorer-path', type=str, default='Unbabel/wmt22-comet-da')
-    parser.add_argument('-sm', '--scoring-mode', type=str, default='reference-based')
+    parser.add_argument('--hf-dataset-path', type=str, default='hgissbkh/WMT22-23-Test')
+    parser.add_argument('--hf-model-path', type=str, default='hgissbkh/ALMA-13B-SFT-HW')
+    parser.add_argument('--stage', type=str, default='evaluation')
+    parser.add_argument('--hypotheses-path', type=str, default='data/{STAGE}/{DATASET_NAME}/{MODEL_NAME}')
+    parser.add_argument('--hypotheses-file', type=str, default='hypotheses_greedy.txt')
+    parser.add_argument('--system', type=str, default=None)
+    parser.add_argument('--hf-scorer-path', type=str, default='Unbabel/wmt23-cometkiwi-da-xxl')
+    parser.add_argument('--qe', action='store_true')
     args = parser.parse_args()
 
     # Load data
     print('\n==========> Loading data...')
-    dataset_path = args.dataset_path.format(DATASET_NAME=args.dataset_name)
-    dataset = load_dataset(dataset_path)
-    dataset = dataset[args.split]
-    sources = dataset['src']
-    try:
-        references = dataset['tgt']
-    except:
-        references = dataset['ref']
-    lang_pairs = dataset['lp']
-    if (args.checkpoint == 'unaligned') or (args.hyperparameters == 'None'):
-        translations_path = args.translations_path.format(
-            DATASET_NAME=args.dataset_name, 
-            MODEL_NAME=args.model_name,
-            HYPERPARAMETERS='',
-            CHECKPOINT=args.checkpoint
-        ).replace('//', '/')
-    else:
-        translations_path = args.translations_path.format(
-            DATASET_NAME=args.dataset_name, 
-            MODEL_NAME=args.model_name,
-            HYPERPARAMETERS=args.hyperparameters,
-            CHECKPOINT=args.checkpoint
+    ds = load_dataset(args.hf_dataset_path)['train']
+    sources = ds['src']
+    if args.system is not None:
+        hypotheses = ds[args.system]
+        num_candidates = 1
+    else:        
+        if args.hypotheses_file == 'hypotheses_greedy.txt':
+            num_candidates = 1
+        else:
+            num_candidates = int(args.hypotheses_file.split('_')[1][1:])    
+        hypotheses_path = args.hypotheses_path.format(
+            STAGE=args.stage,
+            DATASET_NAME=args.hf_dataset_path.split("/")[1],
+            MODEL_NAME=args.hf_model_path.split("/")[1]
         )
-    with open(f'{translations_path}/{args.translations_file}', 'r') as f:
-        translations = [tsl.replace('\\n', '\n') for tsl in f.read().split('\n')]
+        with open(f'{hypotheses_path}/{args.hypotheses_file}', 'r') as f:
+            hypotheses = [tsl.replace('\\n', '\n') for tsl in f.read().split('\n')]
+    sources_rep = [src for src in sources for _ in range(num_candidates)]
     print('==========> Done.\n')
 
     # Score translations with respect to references
-    if args.metric == 'COMET':
-        # Format data for scoring
-        if args.scoring_mode == 'reference-based':
-            scoring_data = [{'src': src, 'mt': cdt, 'ref': ref} for src, cdt, ref in zip(sources, translations, references)]
-        elif args.scoring_mode == 'reference-free':
-            scoring_data = [{'src': src, 'mt': cdt} for src, cdt in zip(sources, translations)]
-
-        # Load scorer
-        print('==========> Loading scorer...')
-        model = load_from_checkpoint(download_model(args.scorer_path))
-        print('==========> Done.\n')
-        
-        # Score hypotheses
-        print('==========> Scoring hypotheses...')
-        model_output = model.predict(scoring_data, gpus=1)
-        scores = model_output.scores
-        print('==========> Done.\n')
+    # Load scorer
+    print('==========> Loading scorer...')
+    model = load_from_checkpoint(download_model(args.hf_scorer_path))
+    model = model.to(torch.bfloat16)
+    print('==========> Done.\n')
+    
+    # Score hypotheses
+    print('==========> Scoring hypotheses...')    
+    if args.qe:
+        scoring_data = [{'src': src, 'mt': mt} for src, mt in zip(sources_rep, hypotheses)]
     else:
-        raise NotImplementedError
+        references_rep = [ref for ref in ds['ref'] for _ in range(num_candidates)]
+        scoring_data = [{'src': src, 'mt': mt, 'ref': ref} for src, mt, ref in zip(sources_rep, hypotheses, references_rep)]    
+    model_output = model.predict(scoring_data, gpus=1)
+    scores = model_output.scores
+    print('==========> Done.\n')
 
     # Save scores
     print('==========> Saving scores...')
-    score_name = args.scorer_path.split('/')[1].replace('-', '_').lower() \
-        + '_rb' * (args.scoring_mode == 'reference-based') \
-        + '_rf' * (args.scoring_mode == 'reference-free')
-    scores_file = args.translations_file.replace('hypotheses', score_name).replace('.txt', '.pkl')  
-    for elt, score, lp in zip(scoring_data, scores, lang_pairs):
-        elt['score'] = score
-        elt['lp'] = lp
-    with open(f'{translations_path}/{scores_file}', 'wb') as f:
-        pickle.dump(scoring_data, f)
+    if args.hf_scorer_path == 'Unbabel/wmt23-cometkiwi-da-xxl':
+        score_name = 'kiwi'
+    elif args.hf_scorer_path == 'Unbabel/XCOMET-XXL':
+        score_name = 'xcomet'
+    elif args.hf_scorer_path == 'Unbabel/wmt22-comet-da':
+        score_name = 'comet'
+    if args.system is not None:   
+        scores_file = f"{score_name}_{args.system}.pkl"
+        save_path = args.hypotheses_path.format(
+            STAGE=args.stage,
+            DATASET_NAME=args.hf_dataset_path.split("/")[1],
+            MODEL_NAME=""
+        )[:-1]
+    else: 
+        scores_file = args.hypotheses_file.replace('hypotheses', score_name).replace('.txt', '.pkl')
+        save_path = hypotheses_path
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+    with open(f'{save_path}/{scores_file}', 'wb') as f:
+        pickle.dump(scores, f)
     print('==========> Done.\n')
 
 
