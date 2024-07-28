@@ -10,7 +10,7 @@ def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--datasets-cache-path', type=str, default='~/.cache/huggingface/datasets')
-    parser.add_argument('--hf-dataset-path', type=str, default='hgissbkh/wmt22-23-test')
+    parser.add_argument('--hf-dataset-path', type=str, default='hgissbkh/WMT22-23-Test-v2')
     parser.add_argument('--language-pairs', type=str, default='cs-en,de-en,is-en,ru-en,zh-en')
     parser.add_argument('--models-cache-path', type=str, default='~/.cache/huggingface/hub')
     parser.add_argument('--hf-model-path', type=str, default='hgissbkh/ALMA-13B-SFT-HW')
@@ -23,7 +23,11 @@ def main():
 
     # Load data
     print('\n==========> Loading dataset...')
-    dataset = load_dataset(args.hf_dataset_path)['train']
+    if args.stage == 'evaluation':
+        split = 'test'
+    else:
+        split = 'train'
+    dataset = load_dataset(args.hf_dataset_path)[split]
     print('==========> Done.\n')
 
     # Create prompts

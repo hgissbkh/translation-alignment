@@ -9,8 +9,8 @@ from comet import download_model, load_from_checkpoint
 def main():
     # Parse arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--hf-dataset-path', type=str, default='hgissbkh/WMT22-23-Test-v2')
-    parser.add_argument('--hf-model-path', type=str, default='hgissbkh/ALMA-13B-SFT-HW')
+    parser.add_argument('--hf-dataset-path', type=str, default='/linkhome/rech/genrce01/urb81vh/.cache/huggingface/datasets/hgissbkh___wmt22-23-test-v2/default/0.0.0/701aee0c9289b4205fa785b154190e86037fccf7')
+    parser.add_argument('--hf-model-path', type=str, default='/linkhome/rech/genrce01/urb81vh/.cache/huggingface/hub/models--hgissbkh--ALMA-13B-SFT-HW-CPO-Multi-chrF/snapshots/58e3dd76e317c661b79a52bcc55a3d6579e16aef')
     parser.add_argument('--stage', type=str, default='evaluation')
     parser.add_argument('--hypotheses-path', type=str, default='data/{STAGE}/{DATASET_NAME}/{MODEL_NAME}')
     parser.add_argument('--hypotheses-file', type=str, default='hypotheses_greedy.txt')
@@ -37,8 +37,8 @@ def main():
             num_candidates = int(args.hypotheses_file.split('_')[1][1:])    
         hypotheses_path = args.hypotheses_path.format(
             STAGE=args.stage,
-            DATASET_NAME=args.hf_dataset_path.split("/")[1],
-            MODEL_NAME=args.hf_model_path.split("/")[1]
+            DATASET_NAME="WMT22-23-Test-v2",
+            MODEL_NAME=args.hf_model_path.split('/')[-3].split('--')[-1]
         )
         with open(f'{hypotheses_path}/{args.hypotheses_file}', 'r') as f:
             hypotheses = [tsl.replace('\\n', '\n') for tsl in f.read().split('\n')]
@@ -76,7 +76,7 @@ def main():
         scores_file = f"{score_name}_{args.system}.pkl"
         save_path = args.hypotheses_path.format(
             STAGE=args.stage,
-            DATASET_NAME=args.hf_dataset_path.split("/")[1],
+            DATASET_NAME=args.hf_model_path.split('/')[-3].split('--')[-1],
             MODEL_NAME=""
         )[:-1]
     else: 
