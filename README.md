@@ -4,16 +4,13 @@ This repository contains the resources for the paper **[Is Preference Alignment 
 
 ## Models and Datasets
 
-All models and evaluation datasets used in the study are available in the following Hugging Face collection:  
-<https://huggingface.co/collections/artefactory/translation-alignment-analysis>.
+All models and evaluation datasets used in the study are available in the following Hugging Face collection: <https://huggingface.co/collections/artefactory/translation-alignment-analysis>.
 
-Model training was performed using the **ALMA** framework:  
-<https://github.com/fe1ixxu/ALMA>.
+Model training was performed using the **ALMA** framework: <https://github.com/fe1ixxu/ALMA>.
 
 ## Reproducing Plots and Tables
 
-To reproduce all plots and tables from the paper, run the notebook:  
-[`plots_and_tables.ipynb`](plots_and_tables.ipynb).
+To reproduce all plots and tables from the paper, run the notebook: [`plots_and_tables.ipynb`](plots_and_tables.ipynb).
 
 ## Citation
 
