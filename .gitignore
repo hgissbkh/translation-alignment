@@ -1,5 +1,2 @@
-sb_*
 .DS_Store
 __pycache__
-launch_sbatch_job.py
-data
